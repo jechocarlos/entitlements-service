@@ -1,41 +1,16 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:15
-    container_name: entitlements_db
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-entitlements_db}
-    ports:
-      - "${DB_PORT:-5432}:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-entitlements_db}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   app:
     build: .
     container_name: entitlements_app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - ./app:/app/app
-      - ./alembic:/app/alembic
-      - ./alembic.ini:/app/alembic.ini
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-entitlements_db}
+      # DATABASE_URL will be loaded from the .env file by the application
+      # Ensure your .env file has the correct DATABASE_URL for your remote PostgreSQL
+      DATABASE_URL: ${DATABASE_URL}
       # Other environment variables for your app
-    depends_on:
-      db:
-        condition: service_healthy
-    # For Alembic migrations, you might run them as part of entrypoint or manually:
-    # docker-compose exec app alembic upgrade head
-
-volumes:
-  postgres_data:

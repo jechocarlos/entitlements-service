@@ -1,12 +1,8 @@
 # Start with the official Python image
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 # Set the working directory in the container
 WORKDIR /app
-
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
 
 # Install system dependencies (if any, e.g., for psycopg2 if not using -binary)
 # RUN apt-get update && apt-get install -y some-package

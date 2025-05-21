@@ -19,6 +19,7 @@ This service handles entitlements for various systems like collections, document
 - Python 3.10+ (or the version specified in your `requirements.txt`)
 - Pip (Python package installer)
 - Docker and Docker Compose (optional, for containerized setup)
+- Access to a running PostgreSQL instance (local or remote).
 
 ### Local Development (without Docker)
 
@@ -34,11 +35,10 @@ This service handles entitlements for various systems like collections, document
     ```
 
 3.  **Set up environment variables:**
-    Create a `.env` file in the root directory (copy from `.env.example` if provided) and configure your `DATABASE_URL`.
-    Example `.env`:
+    Create a `.env` file in the root directory (copy from `.env.example` if provided) and configure your `DATABASE_URL` to point to your **remote PostgreSQL instance**.
+    Example `.env` for a remote database:
     ```
-    DATABASE_URL=postgresql+asyncpg://user:password@host:port/dbname
-    # e.g., DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/entitlements_db
+    DATABASE_URL=postgresql+asyncpg://user:password@your-remote-host:port/dbname
     ```
 
 4.  **Database Setup:**
@@ -60,12 +60,14 @@ This service handles entitlements for various systems like collections, document
 
 ### Dockerized Setup
 
-1.  **Build and run the containers:**
+1.  **Ensure your `.env` file is configured:**
+    Make sure the `.env` file in the root of your project has the correct `DATABASE_URL` pointing to your **remote PostgreSQL instance**. The `docker-compose.yml` is set up to pass this environment variable to the application container.
+
+2.  **Build and run the application container:**
     ```bash
     docker-compose up --build
     ```
-    This will start the FastAPI application and a PostgreSQL database. The application will be available at `http://localhost:8000`.
-    The database tables will be created on startup as defined in `app/main.py`.
+    This will start the FastAPI application. It will connect to the remote PostgreSQL database specified in your `.env` file. The database tables will be created on startup if they don't exist, as defined in `app/main.py`.
 
 ## API Endpoints
 

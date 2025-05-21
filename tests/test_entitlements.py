@@ -1,10 +1,12 @@
-import pytest
-from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
 import os
-from dotenv import load_dotenv
+from typing import AsyncGenerator  # Import AsyncGenerator
 from uuid import uuid4
+
+import pytest
+from dotenv import load_dotenv
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
 # Load environment variables for tests
 load_dotenv()
@@ -14,11 +16,13 @@ TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", os.getenv("DATABASE_URL", "po
 if "entitlements_db" in TEST_DATABASE_URL and "test_entitlements_db" not in TEST_DATABASE_URL:
     print(f"WARNING: Test database URL might be pointing to production DB: {TEST_DATABASE_URL}. Ensure this is intended.")
 
+from app.database import (  # Base for table creation, get_db for overriding
+    Base, get_db)
 # Ensure the main app module can be imported
 # This might require adjusting PYTHONPATH or how tests are run
-from app.main import app # FastAPI app instance
-from app.database import Base, get_db # Base for table creation, get_db for overriding
-from app.schemas import EntitlementCreate, EntitlementUpdate, Entitlement as EntitlementSchema
+from app.main import app  # FastAPI app instance
+from app.schemas import Entitlement as EntitlementSchema
+from app.schemas import EntitlementCreate, EntitlementUpdate
 
 # Setup test database engine and session
 engine = create_async_engine(TEST_DATABASE_URL, echo=False) # echo=False for cleaner test output
@@ -26,7 +30,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 # Fixture to create and drop tables for each test function
 @pytest.fixture(scope="function")
-async def db_session() -> AsyncSession:
+async def db_session() -> AsyncGenerator[AsyncSession, None]: # Corrected type hint
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     
@@ -41,7 +45,7 @@ async def db_session() -> AsyncSession:
 # Fixture to override the get_db dependency in the app
 @pytest.fixture(scope="function")
 async def override_get_db(db_session: AsyncSession):
-    async def _override_get_db():
+    async def _override_get_db() -> AsyncGenerator[AsyncSession, None]: # Corrected type hint for consistency
         try:
             yield db_session
         finally:

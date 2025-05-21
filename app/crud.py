@@ -1,8 +1,12 @@
+from typing import List, Optional  # Import Optional and List
+from uuid import UUID
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
+
 from . import models, schemas
-from uuid import UUID
+
 
 async def get_entitlement(db: AsyncSession, entitlement_id: UUID) -> Optional[models.Entitlement]:
     result = await db.execute(select(models.Entitlement).filter(models.Entitlement.id == entitlement_id))
